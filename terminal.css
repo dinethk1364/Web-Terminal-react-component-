@@ -1,0 +1,444 @@
+@font-face {
+  font-family: 'Adwaita Mono';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url(https://cdn.jsdelivr.net/fontsource/fonts/adwaita-mono@5.3.0/latin-400-normal.woff2) format('woff2'),
+       url(https://cdn.jsdelivr.net/fontsource/fonts/adwaita-mono@5.3.0/latin-400-normal.woff) format('woff');
+}
+@font-face {
+  font-family: 'Adwaita Mono';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url(https://cdn.jsdelivr.net/fontsource/fonts/adwaita-mono@5.3.0/latin-500-normal.woff2) format('woff2'),
+       url(https://cdn.jsdelivr.net/fontsource/fonts/adwaita-mono@5.3.0/latin-500-normal.woff) format('woff');
+}
+
+.terminal-modal {
+  --t-mono: var(--mono, 'Adwaita Mono', 'JetBrains Mono', ui-monospace, monospace);
+  --t-sans: var(--sans, 'Inter', system-ui, sans-serif);
+  --t-accent: var(--accent, #e6b800);
+
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+}
+
+.terminal-modal *,
+.terminal-modal *::before,
+.terminal-modal *::after { box-sizing: border-box; }
+
+.terminal-modal button { cursor: pointer; }
+
+.terminal-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.terminal-modal.state-maximized .terminal-modal-backdrop {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.terminal-window {
+  --term-bg: rgba(14, 15, 19, 0.6);
+  --term-titlebar: rgba(36, 38, 44, 0.55);
+  --term-border: rgba(255, 255, 255, 0.12);
+  --term-fg: #D6D8E0;
+  --term-green: #4FDA6C;
+  --term-red: #FF6B6B;
+  --term-orange: #E3A458;
+  --term-blue: #4C8BF0;
+  --term-yellow: #F2C94C;
+
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  background: var(--term-bg);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: 1px solid var(--term-border);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  pointer-events: auto;
+  transition: width 0.28s cubic-bezier(.2, .8, .2, 1), height 0.28s cubic-bezier(.2, .8, .2, 1),
+              opacity 0.2s ease, transform 0.28s cubic-bezier(.2, .8, .2, 1);
+}
+
+/* ---------- window states ---------- */
+
+.terminal-modal.state-docked .terminal-window {
+  right: 20px;
+  bottom: 48px;
+  left: auto;
+  top: auto;
+  width: min(320px, calc(100vw - 40px));
+  height: 380px;
+  border-radius: 18px;
+  transform: none;
+  opacity: 1;
+}
+
+.terminal-modal.state-maximized .terminal-window {
+  left: 50%;
+  top: 50%;
+  right: auto;
+  bottom: auto;
+  width: min(920px, 94vw);
+  height: min(560px, 82vh);
+  transform: translate(-50%, -50%);
+  opacity: 1;
+  border-radius: 18px;
+}
+
+.terminal-modal.state-minimized .terminal-window {
+  right: 20px;
+  bottom: 24px;
+  left: auto;
+  top: auto;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  transform: none;
+  opacity: 1;
+  cursor: pointer;
+  border-color: var(--term-orange, #E3A458);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+}
+
+.terminal-modal.state-closed .terminal-window {
+  right: 20px;
+  bottom: 24px;
+  left: auto;
+  top: auto;
+  width: min(320px, calc(100vw - 40px));
+  height: 380px;
+  transform: scale(0.85) translateY(16px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.terminal-modal.state-minimized .terminal-titlebar,
+.terminal-modal.state-minimized .terminal-body,
+.terminal-modal.state-minimized .terminal-inputrow,
+.terminal-modal.state-minimized .terminal-quickrow,
+.terminal-modal.state-minimized .vim-overlay {
+  display: none;
+}
+
+.terminal-fab-icon {
+  display: none;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--t-mono);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--term-green, #4FDA6C);
+}
+
+.terminal-modal.state-minimized .terminal-fab-icon { display: flex; }
+
+/* collapses to a round button while the page footer is on screen */
+.terminal-modal.near-footer.state-docked .terminal-window {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border-color: var(--term-orange, #E3A458);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+}
+
+.terminal-modal.near-footer.state-docked .terminal-titlebar,
+.terminal-modal.near-footer.state-docked .terminal-body,
+.terminal-modal.near-footer.state-docked .terminal-inputrow,
+.terminal-modal.near-footer.state-docked .terminal-quickrow,
+.terminal-modal.near-footer.state-docked .vim-overlay {
+  display: none;
+}
+
+.terminal-modal.near-footer.state-docked .terminal-fab-icon { display: flex; }
+
+/* phones: docked state is just the round button */
+@media (max-width: 720px) {
+  .terminal-modal.state-docked .terminal-window {
+    right: 20px;
+    bottom: 24px;
+    left: auto;
+    top: auto;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    border-color: var(--term-orange, #E3A458);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+  }
+  .terminal-modal.state-docked .terminal-titlebar,
+  .terminal-modal.state-docked .terminal-body,
+  .terminal-modal.state-docked .terminal-inputrow,
+  .terminal-modal.state-docked .terminal-quickrow,
+  .terminal-modal.state-docked .vim-overlay {
+    display: none;
+  }
+  .terminal-modal.state-docked .terminal-fab-icon { display: flex; }
+}
+
+@media (max-width: 480px) {
+  .terminal-modal.state-maximized .terminal-window { width: min(680px, 94vw); height: min(480px, 74vh); }
+}
+
+.terminal-window.dragging {
+  transition: none !important;
+  cursor: grabbing;
+  user-select: none;
+}
+
+/* ---------- title bar ---------- */
+
+.terminal-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 6px 8px 14px;
+  background: var(--term-titlebar);
+  border-bottom: 1px solid var(--term-border);
+  flex: none;
+  cursor: grab;
+  touch-action: none;
+}
+
+.terminal-title {
+  font-family: var(--t-sans);
+  font-size: 12px;
+  color: #A9ABB3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.win-controls { display: flex; align-items: center; gap: 2px; flex: none; }
+
+.win-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: #9A9CA5;
+  font-size: 14px;
+  line-height: 1;
+  font-family: var(--t-mono);
+  transition: background 0.12s ease, color 0.12s ease, opacity 0.12s ease;
+}
+
+.win-min { color: var(--term-orange); }
+.win-min:hover { background: rgba(0, 0, 0, 0.35); }
+
+.win-max { font-size: 12px; color: var(--term-blue); }
+.win-max:hover { background: rgba(0, 0, 0, 0.35); }
+
+.win-close {
+  background: var(--term-blue);
+  color: #fff;
+  margin-left: 2px;
+}
+.win-close:hover { background: #E81123; }
+
+/* ---------- screen ---------- */
+
+.terminal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 18px;
+  font-family: var(--t-mono);
+  font-size: 13.5px;
+  color: var(--term-fg);
+  outline: none;
+}
+
+.terminal-line { margin-bottom: 6px; white-space: pre-wrap; word-break: break-word; }
+.terminal-line .cmd { color: var(--term-green); }
+.terminal-prompt-echo { color: var(--term-green); font-weight: 700; }
+.echo-cmd-valid { color: var(--term-yellow); font-weight: 700; }
+.echo-cmd-invalid { color: var(--term-red); font-weight: 700; }
+
+.terminal-body::-webkit-scrollbar { width: 8px; }
+.terminal-body::-webkit-scrollbar-thumb { background: #2A2C36; border-radius: 4px; }
+
+.terminal-inputrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border-top: none;
+  background: transparent;
+  flex: none;
+  margin-bottom: 6px;
+}
+
+.prompt { font-family: var(--t-mono); font-size: 13.5px; white-space: nowrap; color: var(--term-green); font-weight: 700; }
+.prompt-py { font-family: var(--t-mono); font-size: 13.5px; white-space: nowrap; color: var(--t-accent); font-weight: 700; }
+.prompt-user, .prompt-dir { color: inherit; font-weight: inherit; font-size: inherit; font-family: inherit; }
+.prompt-sep { color: #4C8BF0; font-weight: inherit; font-size: inherit; font-family: inherit; }
+
+.terminal-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--term-fg);
+  font-family: var(--t-mono);
+  font-size: 13.5px;
+  font-weight: 700;
+  outline: none;
+}
+
+.terminal-input.cmd-valid { color: var(--term-yellow); }
+.terminal-input.cmd-invalid { color: var(--term-red); }
+
+/* ---------- quick command buttons ---------- */
+
+.terminal-quickrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 14px 14px;
+  background: var(--term-bg);
+  flex: none;
+}
+
+.terminal-quickrow button {
+  font-family: var(--t-mono);
+  font-size: 11.5px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--term-border);
+  background: transparent;
+  color: var(--term-fg);
+  opacity: 0.75;
+  transition: color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.terminal-quickrow button:hover { color: var(--term-green); border-color: var(--term-green); opacity: 1; }
+
+/* ---------- vim overlay ---------- */
+
+.vim-overlay {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  background: #0F1014;
+}
+
+.terminal-window.vim-active .terminal-body,
+.terminal-window.vim-active .terminal-quickrow {
+  display: none;
+}
+
+.terminal-window.vim-active .vim-overlay { display: flex; }
+
+.vim-status-top {
+  flex: none;
+  background: #1D2B3A;
+  color: #9FD3FF;
+  font-family: var(--t-mono);
+  font-size: 11px;
+  padding: 5px 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vim-editor-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  background: #0F1014;
+}
+
+.vim-highlight,
+.vim-textarea {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  font-family: var(--t-mono);
+  font-size: 13.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow: auto;
+  tab-size: 4;
+  font-variant-ligatures: none;
+  letter-spacing: normal;
+}
+
+.vim-highlight {
+  color: var(--term-fg);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.vim-highlight code { font: inherit; color: inherit; }
+
+.vim-textarea {
+  width: 100%;
+  height: 100%;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  caret-color: var(--term-fg);
+  z-index: 2;
+}
+
+/* while typing, show the textarea's own text so the caret and text can't drift apart */
+.vim-editor-wrap.is-typing .vim-highlight { visibility: hidden; }
+.vim-editor-wrap.is-typing .vim-textarea {
+  color: var(--term-fg);
+  -webkit-text-fill-color: var(--term-fg);
+}
+
+/* syntax token colors */
+.tok-kw  { color: #ff7ac6; }
+.tok-str { color: #9ece6a; }
+.tok-com { color: #6c7986; font-style: italic; }
+.tok-num { color: #ffb454; }
+.tok-pre { color: #b48bf2; }
+.tok-fn  { color: #7fd4ff; }
+
+.vim-status-bottom {
+  flex: none;
+  display: flex;
+  gap: 16px;
+  background: #1D2B3A;
+  color: #C9D1D9;
+  font-family: var(--t-mono);
+  font-size: 11.5px;
+  padding: 5px 12px;
+}
+
+.vim-mode { color: var(--term-yellow); font-weight: 700; }
+.vim-filename { opacity: 0.8; }
+.vim-cmdline { color: #fff; }
